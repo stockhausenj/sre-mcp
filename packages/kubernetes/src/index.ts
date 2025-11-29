@@ -4,8 +4,16 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { KubeManager } from "./kube-manager.js";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const server = new Server(
   {
@@ -15,6 +23,7 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
   }
 );
@@ -61,6 +70,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
     ],
   };
+});
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "file:///kubectl-troubleshooting",
+        name: "kubectl Troubleshooting Guide",
+        description: "Comprehensive Kubernetes troubleshooting commands and workflows",
+        mimeType: "text/markdown",
+      },
+    ],
+  };
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const uri = request.params.uri;
+
+  if (uri === "file:///kubectl-troubleshooting") {
+    try {
+      const docsPath = resolve(__dirname, "../docs/kubectl-troubleshooting.md");
+      const content = readFileSync(docsPath, "utf-8");
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "text/markdown",
+            text: content,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(`Failed to read kubectl troubleshooting guide: ${error}`);
+    }
+  }
+
+  throw new Error(`Unknown resource: ${uri}`);
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -130,6 +177,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Kubernetes MCP server running on stdio");
+  console.error("Resources available: kubectl Troubleshooting Guide");
 }
 
 main().catch((error) => {

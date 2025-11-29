@@ -5,9 +5,17 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { SSHManager, SSHConfig } from './ssh-manager.js';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Parse command line arguments
 function parseArgs(): SSHConfig {
@@ -98,6 +106,7 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
   }
 );
@@ -128,6 +137,47 @@ const TOOLS: Tool[] = [
 // Handle tool list requests
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: TOOLS };
+});
+
+// Handle resource list requests
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: 'file:///network-troubleshooting',
+        name: 'Network Troubleshooting Guide',
+        description: 'Comprehensive Linux network troubleshooting commands and workflows',
+        mimeType: 'text/markdown',
+      },
+    ],
+  };
+});
+
+// Handle resource read requests
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const uri = request.params.uri;
+
+  if (uri === 'file:///network-troubleshooting') {
+    try {
+      // Read the network troubleshooting markdown file from the docs directory
+      const docsPath = resolve(__dirname, '../docs/network-troubleshooting.md');
+      const content = readFileSync(docsPath, 'utf-8');
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'text/markdown',
+            text: content,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(`Failed to read network troubleshooting guide: ${error}`);
+    }
+  }
+
+  throw new Error(`Unknown resource: ${uri}`);
 });
 
 // Handle tool execution requests
@@ -207,6 +257,7 @@ async function main() {
   await server.connect(transport);
   console.error('SSH MCP Server running on stdio');
   console.error(`Connected to: ${config.username}@${config.host}:${config.port || 22}`);
+  console.error('Resources available: Network Troubleshooting Guide');
 }
 
 main().catch((error) => {
