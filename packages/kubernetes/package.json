@@ -1,0 +1,21 @@
+{
+  "name": "@sre-mcp/kubernetes",
+  "version": "1.0.0",
+  "description": "Kubernetes MCP server for cluster operations",
+  "type": "module",
+  "bin": {
+    "kube-mcp-server": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@kubernetes/client-node": "^0.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

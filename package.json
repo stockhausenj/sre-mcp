@@ -1,0 +1,17 @@
+{
+  "name": "sre-mcp",
+  "version": "1.0.0",
+  "description": "SRE MCP servers for SSH and Kubernetes operations",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "clean": "rm -rf packages/*/build packages/*/node_modules node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}
