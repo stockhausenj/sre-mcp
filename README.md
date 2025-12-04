@@ -11,6 +11,35 @@ npm run build
 
 ## Configuration
 
+You can configure MCP servers in two ways:
+
+### Option 1: Local Configuration (Recommended for Development)
+
+Create a `.mcp.json` file in your working directory (this repository root or any project directory):
+
+```json
+{
+  "mcpServers": {
+    "ssh-server": {
+      "command": "node",
+      "args": [
+        "/path/to/sre-mcp/packages/ssh/build/index.js",
+        "--host", "192.168.1.100",
+        "--username", "pi",
+        "--key", "~/.ssh/id_rsa"
+      ]
+    }
+  }
+}
+```
+
+This approach is ideal for:
+- Project-specific configurations
+- Testing and development
+- Sharing configurations with team members (via version control)
+
+### Option 2: Global Configuration
+
 Add these to your Claude Code MCP settings (typically `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ### SSH Server
