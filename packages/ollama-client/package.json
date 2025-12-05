@@ -1,0 +1,23 @@
+{
+  "name": "ollama-mcp-client",
+  "version": "1.0.0",
+  "description": "Client that integrates Ollama LLM with MCP servers",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "ollama-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "ollama": "^0.5.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

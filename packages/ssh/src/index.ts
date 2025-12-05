@@ -18,9 +18,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Parse command line arguments
-function parseArgs(): SSHConfig {
+function parseArgs(): { config: SSHConfig; disableResources: boolean } {
   const args = process.argv.slice(2);
   const config: Partial<SSHConfig> = {};
+  let disableResources = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -43,6 +44,9 @@ function parseArgs(): SSHConfig {
       case '--passphrase':
         config.passphrase = args[++i];
         break;
+      case '--disable-resources':
+        disableResources = true;
+        break;
       case '--help':
         console.error(`
 SSH MCP Server - Execute commands on remote servers via SSH
@@ -60,8 +64,9 @@ Authentication (choose one):
   --passphrase <pass>   Passphrase for private key (optional)
 
 Optional:
-  --port <port>         SSH port (default: 22)
-  --help                Show this help message
+  --port <port>            SSH port (default: 22)
+  --disable-resources      Disable documentation resources (use when web search is available)
+  --help                   Show this help message
 
 Examples:
   # Using password authentication
@@ -70,8 +75,8 @@ Examples:
   # Using SSH key authentication
   ssh-mcp-server --host 192.168.1.100 --username pi --key ~/.ssh/id_rsa
 
-  # Using SSH key with passphrase
-  ssh-mcp-server --host 192.168.1.100 --username pi --key ~/.ssh/id_rsa --passphrase mypassphrase
+  # With web search available (disable local docs)
+  ssh-mcp-server --host 192.168.1.100 --username pi --key ~/.ssh/id_rsa --disable-resources
         `);
         process.exit(0);
         break;
@@ -90,11 +95,11 @@ Examples:
     process.exit(1);
   }
 
-  return config as SSHConfig;
+  return { config: config as SSHConfig, disableResources };
 }
 
 // Initialize SSH connection
-const config = parseArgs();
+const { config, disableResources } = parseArgs();
 const sshManager = new SSHManager(config);
 
 // Create MCP server
@@ -141,6 +146,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Handle resource list requests
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  // If resources are disabled (e.g., web search is available), return empty list
+  if (disableResources) {
+    return { resources: [] };
+  }
+
   return {
     resources: [
       {
@@ -257,7 +267,11 @@ async function main() {
   await server.connect(transport);
   console.error('SSH MCP Server running on stdio');
   console.error(`Connected to: ${config.username}@${config.host}:${config.port || 22}`);
-  console.error('Resources available: Network Troubleshooting Guide');
+  if (!disableResources) {
+    console.error('Resources available: Network Troubleshooting Guide');
+  } else {
+    console.error('Resources disabled (web search available)');
+  }
 }
 
 main().catch((error) => {

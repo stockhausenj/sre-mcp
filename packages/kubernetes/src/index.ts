@@ -15,6 +15,52 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Parse command line arguments
+function parseArgs(): { disableResources: boolean } {
+  const args = process.argv.slice(2);
+  let disableResources = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    switch (arg) {
+      case "--disable-resources":
+        disableResources = true;
+        break;
+      case "--help":
+        console.error(`
+Kubernetes MCP Server - Execute kubectl commands and query Kubernetes clusters
+
+Usage:
+  kube-mcp-server [options]
+
+Optional:
+  --disable-resources      Disable documentation resources (use when web search is available)
+  --help                   Show this help message
+
+Environment Variables:
+  KUBECONFIG              Path to kubeconfig file (default: ~/.kube/config)
+  KUBE_CONTEXT            Kubernetes context to use
+
+Examples:
+  # Basic usage (uses default kubeconfig)
+  kube-mcp-server
+
+  # With web search available (disable local docs)
+  kube-mcp-server --disable-resources
+
+  # With specific context
+  KUBE_CONTEXT=production kube-mcp-server
+        `);
+        process.exit(0);
+        break;
+    }
+  }
+
+  return { disableResources };
+}
+
+const { disableResources } = parseArgs();
+
 const server = new Server(
   {
     name: "kube-mcp-server",
@@ -73,6 +119,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  // If resources are disabled (e.g., web search is available), return empty list
+  if (disableResources) {
+    return { resources: [] };
+  }
+
   return {
     resources: [
       {
@@ -177,7 +228,11 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Kubernetes MCP server running on stdio");
-  console.error("Resources available: kubectl Troubleshooting Guide");
+  if (!disableResources) {
+    console.error("Resources available: kubectl Troubleshooting Guide");
+  } else {
+    console.error("Resources disabled (web search available)");
+  }
 }
 
 main().catch((error) => {

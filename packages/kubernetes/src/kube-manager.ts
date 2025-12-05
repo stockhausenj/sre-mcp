@@ -11,6 +11,13 @@ export class KubeManager {
   constructor() {
     this.kc = new k8s.KubeConfig();
     this.kc.loadFromDefault();
+
+    // If KUBE_CONTEXT is set, use that context
+    const contextName = process.env.KUBE_CONTEXT;
+    if (contextName) {
+      this.kc.setCurrentContext(contextName);
+    }
+
     this.k8sApi = this.kc.makeApiClient(k8s.CoreV1Api);
   }
 
@@ -51,7 +58,9 @@ export class KubeManager {
 
   async executeKubectl(command: string): Promise<string> {
     try {
-      const { stdout, stderr } = await execAsync(`kubectl ${command}`);
+      const contextName = process.env.KUBE_CONTEXT;
+      const contextFlag = contextName ? `--context=${contextName}` : "";
+      const { stdout, stderr } = await execAsync(`kubectl ${contextFlag} ${command}`);
       if (stderr && !stdout) {
         throw new Error(stderr);
       }

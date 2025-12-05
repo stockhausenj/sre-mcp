@@ -2,6 +2,13 @@
 
 A collection of Model Context Protocol (MCP) servers for SRE tasks including SSH command execution and Kubernetes cluster management.
 
+## Packages
+
+- **[ssh](packages/ssh/README.md)** - MCP server for remote SSH command execution
+- **[kubernetes](packages/kubernetes/README.md)** - MCP server for Kubernetes cluster management
+- **[web-search](packages/web-search/README.md)** - MCP server for web search using Brave Search API
+- **[ollama-client](packages/ollama-client/README.md)** - Interactive chat client that connects local Ollama LLMs with MCP servers
+
 ## Installation
 
 ```bash
@@ -9,76 +16,28 @@ npm install
 npm run build
 ```
 
-## Configuration
+## Quick Start
 
-You can configure MCP servers in two ways:
+### For Claude Code Users
 
-### Option 1: Local Configuration (Recommended for Development)
+See individual package READMEs for configuration:
+- [SSH Server Configuration](packages/ssh/README.md#using-with-claude-code)
+- [Kubernetes Server Configuration](packages/kubernetes/README.md#using-with-claude-code)
 
-Create a `.mcp.json` file in your working directory (this repository root or any project directory):
+### For Local LLM (Ollama) Users
 
-```json
-{
-  "mcpServers": {
-    "ssh-server": {
-      "command": "node",
-      "args": [
-        "/path/to/sre-mcp/packages/ssh/build/index.js",
-        "--host", "192.168.1.100",
-        "--username", "pi",
-        "--key", "~/.ssh/id_rsa"
-      ]
-    }
-  }
-}
-```
+See the [Ollama Client README](packages/ollama-client/README.md)
 
-This approach is ideal for:
-- Project-specific configurations
-- Testing and development
-- Sharing configurations with team members (via version control)
+## Local Documentation (Offline Knowledge)
 
-### Option 2: Global Configuration
+Some MCP servers (SSH and Kubernetes) maintain local documentation resources for offline troubleshooting when web search is not available. These packages include a `docs/sources.md` file that lists authoritative sources for documentation updates.
 
-Add these to your Claude Code MCP settings (typically `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+### Packages with Local Documentation
 
-### SSH Server
+- **SSH Server**: Includes network troubleshooting guide (`packages/ssh/docs/`)
+- **Kubernetes Server**: Includes kubectl troubleshooting guide (`packages/kubernetes/docs/`)
 
-```json
-{
-  "mcpServers": {
-    "ssh-server": {
-      "command": "node",
-      "args": [
-        "/path/to/sre-mcp/packages/ssh/build/index.js",
-        "--host", "192.168.1.100",
-        "--username", "pi",
-        "--key", "~/.ssh/id_rsa"
-      ]
-    }
-  }
-}
-```
-
-### Kubernetes Cluster
-
-```json
-{
-  "mcpServers": {
-    "kubernetes-cluster": {
-      "command": "node",
-      "args": [
-        "/path/to/sre-mcp/packages/kubernetes/build/index.js",
-        "--kubeconfig", "~/.kube/config"
-      ]
-    }
-  }
-}
-```
-
-## Documentation Maintenance
-
-Each package maintains a `docs/sources.md` file that lists authoritative sources for documentation updates. These files are optimized for AI-assisted documentation maintenance.
+**Note:** The web-search server does not maintain local documentation - it fetches current information from the web. The ollama-client is not an MCP server but a client that connects to MCP servers.
 
 ### How It Works
 
@@ -87,9 +46,22 @@ The `sources.md` files provide:
 - **Context for each source** - What to look for (API changes, best practices, etc.)
 - **Verification checklists** - Ensuring documentation stays accurate and complete
 
+### When to Use Local Documentation vs Web Search
+
+**Use local documentation (without web search):**
+- Offline environments
+- When you want curated, stable troubleshooting guides
+- For scenarios where API costs are a concern
+
+**Use web search (disable local documentation):**
+- When you need current information and latest solutions
+- To find recent GitHub issues and Stack Overflow answers
+- For discovering breaking changes and updates
+- Add `--disable-resources` flag to SSH/Kubernetes servers (see [WEB_SEARCH_INTEGRATION.md](WEB_SEARCH_INTEGRATION.md))
+
 ### Updating Documentation with AI
 
-When you need to update documentation for a package, use prompts like these:
+When you need to update local documentation for SSH or Kubernetes servers, use prompts like these:
 
 **For comprehensive updates:**
 ```
@@ -125,7 +97,7 @@ Kubernetes client-node API usage.
 
 ### Adding New Sources
 
-To add a new authoritative source:
+To add a new authoritative source to local documentation:
 
 1. Edit the appropriate `docs/sources.md` file
 2. Add the URL under the relevant priority section (PRIMARY/SECONDARY/REFERENCE)
@@ -133,17 +105,3 @@ To add a new authoritative source:
 4. Update the verification checklist if needed
 
 This approach ensures documentation stays accurate and up-to-date with minimal manual effort.
-
-## Testing
-
-You can test the servers manually:
-
-```bash
-# SSH Server
-node packages/ssh/build/index.js --host YOUR_HOST --username USER --key ~/.ssh/id_rsa
-
-# Kubernetes Server
-node packages/kubernetes/build/index.js --kubeconfig ~/.kube/config
-```
-
-The servers run on stdio and wait for MCP protocol messages.

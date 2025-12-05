@@ -5,3 +5,4 @@ build/
 .env
 .mcp.json
 .claude/settings.local.json
+packages/ollama-client/config.json

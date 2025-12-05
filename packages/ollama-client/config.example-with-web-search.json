@@ -1,0 +1,39 @@
+{
+  "model": "qwen2.5:14b",
+  "systemPrompt": "You are a helpful SRE assistant with access to SSH, Kubernetes, and web search tools.\n\nUse your tools appropriately:\n- Use SSH and Kubernetes tools for direct infrastructure operations and diagnostics\n- Use web search to find current information, documentation, GitHub issues, Stack Overflow solutions, error message explanations, or any information you don't have in your training data\n- When troubleshooting, search for error messages and known issues to find recent solutions\n- Always explain what you're doing and interpret results for the user\n\nExamples of when to search:\n- Finding GitHub issues: \"kubernetes CrashLoopBackOff github issues 2024\"\n- Error solutions: \"cert-manager DNS01 challenge failed Route53\"\n- Best practices: \"FluxCD kustomization dependencies best practices\"\n- Documentation: \"nginx ingress controller rate limiting configuration\"",
+  "mcpServers": [
+    {
+      "name": "ssh-server",
+      "comment": "Note: --disable-resources flag prevents local docs from overriding web search",
+      "command": "node",
+      "args": [
+        "/Users/jaystockhausen/repos/sre-mcp/packages/ssh/build/index.js",
+        "--host", "192.168.1.100",
+        "--username", "ubuntu",
+        "--key", "~/.ssh/id_rsa",
+        "--disable-resources"
+      ]
+    },
+    {
+      "name": "kubernetes-server",
+      "comment": "Note: --disable-resources flag prevents local docs from overriding web search",
+      "command": "node",
+      "args": [
+        "/Users/jaystockhausen/repos/sre-mcp/packages/kubernetes/build/index.js",
+        "--disable-resources"
+      ],
+      "env": {
+        "KUBECONFIG": "~/.kube/config",
+        "KUBE_CONTEXT": "production"
+      }
+    },
+    {
+      "name": "web-search",
+      "command": "node",
+      "args": [
+        "/Users/jaystockhausen/repos/sre-mcp/packages/web-search/build/index.js",
+        "--api-key", "YOUR_BRAVE_API_KEY_HERE"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "model": "qwen2.5:latest",
+  "systemPrompt": "You are a helpful SRE assistant with access to SSH and Kubernetes tools. Use the available tools to help users troubleshoot and manage their infrastructure. Always explain what you're doing and interpret the results for the user.",
+  "mcpServers": [
+    {
+      "name": "ssh-server",
+      "command": "node",
+      "args": [
+        "/absolute/path/to/sre-mcp/packages/ssh/build/index.js",
+        "--host", "192.168.1.100",
+        "--username", "pi",
+        "--key", "~/.ssh/id_rsa"
+      ]
+    },
+    {
+      "name": "kubernetes-server",
+      "command": "node",
+      "args": [
+        "/absolute/path/to/sre-mcp/packages/kubernetes/build/index.js",
+        "--kubeconfig", "~/.kube/config"
+      ]
+    }
+  ]
+}
